@@ -1,0 +1,138 @@
+nginx:
+  headers:
+    server: "nginx"
+  html: []
+
+apache:
+  headers:
+    server: "Apache"
+  html: []
+
+iis:
+  headers:
+    server: "Microsoft-IIS"
+  html: []
+
+cloudflare:
+  headers:
+    server: "cloudflare"
+    cf-ray: ".+"
+  html: []
+
+wordpress:
+  headers:
+    x-powered-by: "WordPress"
+  html:
+    - "wp-content"
+    - "wp-includes"
+
+drupal:
+  headers:
+    x-generator: "Drupal"
+  html:
+    - "sites/default/files"
+    - "Drupal.settings"
+
+joomla:
+  headers: []
+  html:
+    - "content=\"Joomla"
+    - "/components/com_"
+
+react:
+  headers: []
+  html:
+    - "data-reactroot"
+    - "_reactRootContainer"
+
+vue:
+  headers: []
+  html:
+    - "data-v-[0-9a-f]{8}"
+    - "__vue__"
+
+angular:
+  headers: []
+  html:
+    - "ng-version="
+    - "ng-app="
+
+jquery:
+  headers: []
+  html:
+    - "jquery(\\.min)?\\.js"
+    - "jQuery v[0-9]"
+
+bootstrap:
+  headers: []
+  html:
+    - "bootstrap(\\.min)?\\.css"
+    - "bootstrap(\\.min)?\\.js"
+
+php:
+  headers:
+    x-powered-by: "PHP"
+  html: []
+
+aspnet:
+  headers:
+    x-powered-by: "ASP.NET"
+    x-aspnet-version: ".+"
+  html: []
+
+django:
+  headers: []
+  html:
+    - "csrfmiddlewaretoken"
+
+flask:
+  headers:
+    server: "Werkzeug"
+  html: []
+
+express:
+  headers:
+    x-powered-by: "Express"
+  html: []
+
+laravel:
+  headers: []
+  html:
+    - "laravel_session"
+
+tomcat:
+  headers:
+    server: "Apache-Coyote"
+  html: []
+
+jetty:
+  headers:
+    server: "Jetty"
+  html: []
+
+nextjs:
+  headers:
+    x-powered-by: "Next.js"
+  html:
+    - "__NEXT_DATA__"
+
+nuxt:
+  headers: []
+  html:
+    - "__NUXT__"
+
+gatsby:
+  headers: []
+  html:
+    - "___gatsby"
+
+shopify:
+  headers:
+    server: "Shopify"
+  html:
+    - "cdn\\.shopify\\.com"
+
+grafana:
+  headers: []
+  html:
+    - "grafana-app"
