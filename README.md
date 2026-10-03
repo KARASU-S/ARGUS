@@ -1,19 +1,67 @@
-# ARGUS v0.2
+ARGUS v0.3
+Минималистичный инструмент автоматизированной разведки и анализа периметра. Чистый Python, без внешних бинарников и без API-токенов — AI-анализ работает через локальную Ollama.
 
-## Что это
-Минималистичный инструмент для автоматизированной разведки и анализа безопасности.
-Работает на чистом Python без внешних бинарников.
-Использует локальную LLM (Ollama) для анализа находок.
+Что нового в v0.3 (по сравнению с v0.2)
+⚡ Скорость и качество сканирования
+TOP_PORTS расширен с 30 до ~110 значимых портов (RDP, VNC, СУБД, Kubernetes, MQTT, SCADA…). Исправлена причина бага «показал только 80 порт».
+Конкурентность повышена с 50 до 800–2000 параллельных соединений, убран искусственный sleep на каждый порт — полный скан 65535 портов теперь занимает минуты, а не часы.
+Починено чтение баннеров молчаливых сервисов (RDP/VNC больше не «невидимы»).
+TLS/HTTP-фингерпринт для всех потенциальных web/TLS-портов (HTTPS на 80/8080/8443 не теряется).
+Новый флаг --ports "20-100,443,3389" — произвольные диапазоны; прогресс-бар при больших сканах.
+📊 Максимальный вывод
+По каждому открытому порту: порт | состояние | сервис | продукт+версия | TLS (протокол, шифр, CN/SAN сертификата, срок) / HTTP (код ответа, Server) | баннер | подсказка ОС.
+Новая сводная таблица «Предположение об ОС/аппаратной платформе» (Windows / Linux / RouterOS / Cisco / Synology / NAS — с уверенностью и сигналами).
+Без обрезки: показываются все открытые порты (в v0.2 был cut на top-50).
+🔒 Безопасность кода
+Убран verify=False (MITM-риск) → единый core/net.py с честной TLS-верификацией.
+Защита от path traversal при сохранении отчётов, XSS через html.escape() + CSP-meta.
+Проверка Ollama-host на loopback/private (анти-SSRF), лимит размера ответа crt.sh, таймауты везде.
+Deprecated datetime.utcnow() → aware UTC; абсолютные пути к data/, reports/, ai/.
+🧹 Архитектура
+Удалён GitHub-модуль целиком — в инструменте не осталось кода, где нужен токен.
+~250 строк копипасты заменены декларативным реестром модулей и общим раннером.
+Дедупликация находок (Finding.dedup_key, sha256) — повторные прогоны и кэш не плодят дубли.
+Исправлен режим q: при пустом кэше запускается полная разведка.
+DNS: различение NXDOMAIN/NoAnswer, проверки SPF/DMARC.
+Надпись AUTO заменена на ARGUS везде (баннер, меню, отчёты).
+Полный список изменений — в CHANGELOG.md.
 
-## Установка
-ollama pull qwen2.5:3b
+Установка
 pip install -r requirements.txt
+ollama pull qwen2.5:3b   # для AI-анализа (опционально)
+Запуск
+Интерактивно:
 
-## Запуск
-python argus.py run
+python argus.py
+CLI (неинтерактивно):
 
-## CLI-режим (неинтерактивный)
-```bash
-python argus.py run --target example.com --mode 2
-python argus.py run --target example.com --mode a --output report.html
-python argus.py run --target example.com --mode q --no-ai
+python argus.py -t example.com -m a --html        # вся разведка + HTML-отчёт
+python argus.py -t example.com -m 5               # агрессивный скан топ-портов
+python argus.py -t 10.0.0.5 -p "20-100,443,3389"  # свой диапазон портов
+python argus.py -t example.com -m q --no-ai       # полный цикл из кэша без AI
+Режимы (-m)
+Код	Описание
+1–5	Портскан: от быстрого stealth до агрессивного top-110 с фингерпринтом
+6	DNS-разведка (записи, SPF, DMARC)
+7	WHOIS
+8	crt.sh (сертификаты)
+10	Web-разведка
+s	Субдомены (brute с лимитом времени)
+t	Технологический фингерпринт
+a	Все модули
+q	Полный цикл + AI-анализ (при пустом кэше запускает полную разведку)
+Флаги
+--html — сохранить HTML-отчёт в reports/
+--no-ai — не запускать AI-анализ
+--no-cache — игнорировать SQLite-кэш
+Структура
+argus/
+├── argus.py            # оркестратор (Typer CLI + интерактивное меню)
+├── core/               # Finding (дедуп), cache (SQLite TTL), ai_engine, net (TLS-верификация), services, menu
+├── modules/            # portscan, dns_recon, whois_recon, crtsh, web_recon, subdomain_brute, tech_fingerprint
+├── report/             # html_report (escape + CSP)
+├── ai/prompts/         # промпты для локальной Ollama
+├── data/               # кэш SQLite
+└── reports/            # HTML-отчёты
+Требования
+Python 3.10+, typer, rich, httpx, dnspython, python-whois, ollama, PyYAML, tldextract.
